@@ -1,4 +1,4 @@
-import { createSelection, type SelectionItem } from "bun-promptx";
+import { createPrompt, createSelection, type SelectionItem } from "bun-promptx";
 import type { SkypeType } from "./type";
 import { Spinner } from "@topcli/spinner";
 
@@ -71,8 +71,16 @@ import { Spinner } from "@topcli/spinner";
       "to",
       new Date(
         selectedConversation.MessageList[0].originalarrivaltime
-      ).toDateString()
+      ).toDateString(),
+      "\n"
     );
+
+    const confirm = createPrompt("is this what you want to use? (y/n): ");
+
+    if (confirm.error || confirm.value?.toLowerCase() != "y") {
+      console.log("\x1b[91m✘\x1b[0m Not converting to training data!");
+      return;
+    }
   } catch (e) {
     console.error(e);
   }

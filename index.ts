@@ -30,6 +30,17 @@ const result = createSelection(
     footerText: "Press enter when you are ready",
   }
 );
+if (result.error || result.selectedIndex === null) {
+  console.error("Something went wrong:", result.error);
+  process.exit(1);
+}
 
-console.log(result);
-// { selectedIndex: 2, error: null }
+const selectedConversation = messageData.conversations[result.selectedIndex];
+
+console.log(
+  "You selected",
+  `\`${selectedConversation.displayName || selectedConversation.id}\``,
+  "with",
+  selectedConversation.MessageList.length,
+  "messages in it"
+);

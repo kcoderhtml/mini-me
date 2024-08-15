@@ -80,7 +80,44 @@ import { Spinner } from "@topcli/spinner";
     if (confirm.error || confirm.value?.toLowerCase() != "y") {
       console.log("\x1b[91m✘\x1b[0m Not converting to training data!");
       return;
+    } else {
+      console.log("\x1b[92m✔\x1b[0m Converting to training data!");
     }
+
+    const chunkingSpinner = new Spinner().start(
+      "Chunking your conversation into smaller conversations based on time between messages"
+    );
+
+    // split the messages up into chunks based on time between messages; if time is greater than 1 hour between messages than split it into a new array section
+    const messageChunks: SkypeType["conversations"][0]["MessageList"][] = [];
+    let currentChunk: SkypeType["conversations"][0]["MessageList"] = [];
+    let lastMessageTime = new Date(
+      selectedConversation.MessageList[0].originalarrivaltime
+    );
+    for (const message of selectedConversation.MessageList) {
+      const originalArrivalDate = new Date(message.originalarrivaltime);
+      if (
+        originalArrivalDate.getTime() - lastMessageTime.getTime() >
+        1000 * 60 * 60
+      ) {
+        messageChunks.push(currentChunk);
+        currentChunk = [];
+      }
+      currentChunk.push(message);
+      lastMessageTime = originalArrivalDate;
+    }
+
+    // list how many chunks there are
+    chunkingSpinner.succeed(
+      "Successfully chunked into " +
+        messageChunks.length +
+        " sub conversations with an average of " +
+        Math.round(
+          messageChunks.reduce((total, chunk) => total + chunk.length, 0) /
+            messageChunks.length
+        ) +
+        " messagess per chunk"
+    );
   } catch (e) {
     console.error(e);
   }

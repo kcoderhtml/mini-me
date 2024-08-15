@@ -1,5 +1,6 @@
 import { createSelection, type SelectionItem } from "bun-promptx";
 import type { SkypeType } from "./type";
+import { Spinner } from "@topcli/spinner";
 
 console.log("Hi! Welcome to the mini me project!");
 console.log(
@@ -7,15 +8,26 @@ console.log(
 );
 
 console.log("------------------\n");
+const spinner = new Spinner().start("loading json data!");
+await Bun.sleep(1000);
 
-console.log("transforming the data into a valid training file!");
 const messageData: SkypeType = await Bun.file("data/messages.json").json();
 
-console.log(
-  "You have",
-  messageData.conversations.length,
-  "conversations included in your export\n\n------------------\n"
+spinner.succeed(
+  "You have " +
+    messageData.conversations.length +
+    " conversations included in your export"
 );
+console.log(
+  "\x1b[92m✔\x1b[0m You have " +
+    messageData.conversations.reduce(
+      (total, conversation) => total + conversation.MessageList.length,
+      0
+    ) +
+    " messages3 included in your export"
+);
+
+console.log("\n\n------------------\n");
 
 const result = createSelection(
   messageData.conversations.map((conversation) => {

@@ -29,7 +29,7 @@ import { Spinner } from "@topcli/spinner";
         " messages included in your export"
     );
 
-    console.log("\n\n------------------\n");
+    console.log("\n------------------\n");
 
     const result = createSelection(
       messageData.conversations.map((conversation) => {

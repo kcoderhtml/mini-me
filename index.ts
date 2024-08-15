@@ -15,3 +15,12 @@ console.log(
   messageData.conversations.length,
   "conversations included in your export"
 );
+
+console.log(
+  "those conversations are:",
+  messageData.conversations
+    .map((conversation) => {
+      return `\n\n---\nid: ${conversation.id}\nname: ${conversation.displayName}\n---\n`;
+    })
+    .join(" ")
+);

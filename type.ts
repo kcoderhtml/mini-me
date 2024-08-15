@@ -12,6 +12,17 @@ export type SkypeType = {
       conversationstatus: null;
     };
     threadProperties: null;
-    MessageList: {}[];
+    MessageList: {
+      id: string;
+      displayName: string;
+      originalarrivaltime: Date;
+      messagetype: "RichText";
+      version: number;
+      content: string;
+      conversationid: string;
+      from: string;
+      properties: null;
+      amsreferences: null;
+    }[];
   }[];
 };

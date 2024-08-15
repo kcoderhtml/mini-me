@@ -24,7 +24,7 @@ console.log(
       (total, conversation) => total + conversation.MessageList.length,
       0
     ) +
-    " messages3 included in your export"
+    " messages included in your export"
 );
 
 console.log("\n\n------------------\n");

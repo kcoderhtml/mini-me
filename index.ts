@@ -1,3 +1,4 @@
+import { createSelection, type SelectionItem } from "bun-promptx";
 import type { SkypeType } from "./type";
 
 console.log("Hi! Welcome to the mini me project!");
@@ -13,14 +14,22 @@ const messageData: SkypeType = await Bun.file("data/messages.json").json();
 console.log(
   "You have",
   messageData.conversations.length,
-  "conversations included in your export"
+  "conversations included in your export\n\n------------------\n"
 );
 
-console.log(
-  "those conversations are:",
-  messageData.conversations
-    .map((conversation) => {
-      return `\n\n---\nid: ${conversation.id}\nname: ${conversation.displayName}\n---\n`;
-    })
-    .join(" ")
+const result = createSelection(
+  messageData.conversations.map((conversation) => {
+    return {
+      text: conversation.id + ":",
+      description: conversation.displayName || "null",
+    };
+  }) as SelectionItem[],
+  {
+    headerText: "Select the conversation you want to use as training data: ",
+    perPage: 5,
+    footerText: "Press enter when you are ready",
+  }
 );
+
+console.log(result);
+// { selectedIndex: 2, error: null }

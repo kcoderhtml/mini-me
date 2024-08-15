@@ -1,6 +1,6 @@
 export type SkypeType = {
   userId: string;
-  exportDate: Date;
+  exportDate: string; // date format but in a string
   conversations: {
     id: string;
     displayName: string | null;
@@ -15,7 +15,7 @@ export type SkypeType = {
     MessageList: {
       id: string;
       displayName: string;
-      originalarrivaltime: Date;
+      originalarrivaltime: string; // date format but actualy a string
       messagetype: "RichText";
       version: number;
       content: string;

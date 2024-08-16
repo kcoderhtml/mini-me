@@ -214,93 +214,123 @@ const openaiClient = new OpenAI();
       return;
     }
 
-    // write training data to file
-    const writingSpinner = new Spinner().start(
-      "Writing training data to file..."
-    );
-    await Bun.write("data/training.jsonl", trainingDataMapped);
-    writingSpinner.succeed(
-      "Successfully wrote training data to data/training.jsonl!"
-    );
-
-    // offer to upload the file
-    const upload = createPrompt("do you want to upload the file? (y/n): ");
-    if (upload.error || upload.value?.toLowerCase() != "y") {
-      console.log("\x1b[91m✘\x1b[0m Not uploading the file!");
-      return;
-    } else {
-      console.log("\x1b[92m✔\x1b[0m Uploading the file!");
-    }
-
-    const uploadSpinner = new Spinner().start("Uploading file...");
-    let fileUploadId;
-    try {
-      const fileUpload = await openaiClient.files.create({
-        purpose: "fine-tune",
-        file: fs.createReadStream("data/training.jsonl"),
-      });
-
-      uploadSpinner.succeed("Successfully uploaded file as " + fileUpload.id);
-      fileUploadId = fileUpload.id;
-    } catch (e) {
-      uploadSpinner.failed("File upload failed");
-      console.error(e);
-      return;
-    }
-
-    // offer to start training
-    const train = createPrompt("do you want to start training? (y/n): ");
-    if (train.error || train.value?.toLowerCase() != "y") {
-      console.log("\x1b[91m✘\x1b[0m Not starting training!");
-      return;
-    } else {
-      console.log("\x1b[92m✔\x1b[0m Starting training!");
-    }
-
-    let wandbProject: null | string = null;
-    // ask the user if they want to track this in a weights and biases project and if so than enter the name of it
-    const wandb = createPrompt("Do you want to track this in wandb? (y/n): ");
-    if (wandb.error || wandb.value?.toLowerCase() != "y") {
-      console.log("\x1b[91m✘\x1b[0m Not tracking in wandb!");
-      return;
-    } else {
-      console.log("\x1b[92m✔\x1b[0m Tracking in wandb!");
-
-      const wandbProjectPrompt = createPrompt(
-        "Enter the name of the wandb project: "
-      );
-      if (wandbProjectPrompt.error) {
-        console.error("Something went wrong:", wandbProjectPrompt.error);
-        return;
+    const trainingType = createSelection(
+      [
+        {
+          text: "GPT-4o-mini-2024-07-18",
+          description: "conversation format",
+        },
+        {
+          text: "gemini-1.5-flash-001-tuning",
+          description: "csv format",
+        },
+      ] as SelectionItem[],
+      {
+        headerText: "Select the model/datatype you want to export to: ",
+        perPage: 5,
+        footerText: "Press enter when you are ready",
       }
+    );
 
-      wandbProject = wandbProjectPrompt.value;
+    if (trainingType.error || trainingType.selectedIndex === null) {
+      console.error("Something went wrong:", trainingType.error);
+      return;
     }
 
-    const trainingSpinner = new Spinner().start("Starting training...");
-    try {
-      const training = await openaiClient.fineTuning.jobs.create({
-        model: "gpt-4o-mini-2024-07-18",
-        training_file: fileUploadId,
-        integrations: wandbProject
-          ? [
-              {
-                type: "wandb",
-                wandb: {
-                  project: wandbProject,
-                },
-              },
-            ]
-          : [],
-      });
+    switch (trainingType.selectedIndex) {
+      case 0:
+        // write training data to file
+        const writingSpinner = new Spinner().start(
+          "Writing training data to file..."
+        );
+        await Bun.write("data/training.jsonl", trainingDataMapped);
+        writingSpinner.succeed(
+          "Successfully wrote training data to data/training.jsonl!"
+        );
 
-      trainingSpinner.succeed(
-        "Successfully started training as " + training.id
-      );
-    } catch (e) {
-      trainingSpinner.failed("Training failed");
-      console.error(e);
-      return;
+        // offer to upload the file
+        const upload = createPrompt("do you want to upload the file? (y/n): ");
+        if (upload.error || upload.value?.toLowerCase() != "y") {
+          console.log("\x1b[91m✘\x1b[0m Not uploading the file!");
+          return;
+        } else {
+          console.log("\x1b[92m✔\x1b[0m Uploading the file!");
+        }
+
+        const uploadSpinner = new Spinner().start("Uploading file...");
+        let fileUploadId;
+        try {
+          const fileUpload = await openaiClient.files.create({
+            purpose: "fine-tune",
+            file: fs.createReadStream("data/training.jsonl"),
+          });
+
+          uploadSpinner.succeed(
+            "Successfully uploaded file as " + fileUpload.id
+          );
+          fileUploadId = fileUpload.id;
+        } catch (e) {
+          uploadSpinner.failed("File upload failed");
+          console.error(e);
+          return;
+        }
+
+        // offer to start training
+        const train = createPrompt("do you want to start training? (y/n): ");
+        if (train.error || train.value?.toLowerCase() != "y") {
+          console.log("\x1b[91m✘\x1b[0m Not starting training!");
+          return;
+        } else {
+          console.log("\x1b[92m✔\x1b[0m Starting training!");
+        }
+
+        let wandbProject: null | string = null;
+        // ask the user if they want to track this in a weights and biases project and if so than enter the name of it
+        const wandb = createPrompt(
+          "Do you want to track this in wandb? (y/n): "
+        );
+        if (wandb.error || wandb.value?.toLowerCase() != "y") {
+          console.log("\x1b[91m✘\x1b[0m Not tracking in wandb!");
+          return;
+        } else {
+          console.log("\x1b[92m✔\x1b[0m Tracking in wandb!");
+
+          const wandbProjectPrompt = createPrompt(
+            "Enter the name of the wandb project: "
+          );
+          if (wandbProjectPrompt.error) {
+            console.error("Something went wrong:", wandbProjectPrompt.error);
+            return;
+          }
+
+          wandbProject = wandbProjectPrompt.value;
+        }
+
+        const trainingSpinner = new Spinner().start("Starting training...");
+        try {
+          const training = await openaiClient.fineTuning.jobs.create({
+            model: "gpt-4o-mini-2024-07-18",
+            training_file: fileUploadId,
+            integrations: wandbProject
+              ? [
+                  {
+                    type: "wandb",
+                    wandb: {
+                      project: wandbProject,
+                    },
+                  },
+                ]
+              : [],
+          });
+
+          trainingSpinner.succeed(
+            "Successfully started training as " + training.id
+          );
+        } catch (e) {
+          trainingSpinner.failed("Training failed");
+          console.error(e);
+          return;
+        }
     }
   } catch (e) {
     console.error(e);

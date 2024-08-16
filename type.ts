@@ -16,7 +16,21 @@ export type SkypeType = {
       id: string;
       displayName: string;
       originalarrivaltime: string; // date format but actualy a string
-      messagetype: "RichText";
+      messagetype:
+        | "RichText"
+        | "RichText/UriObject"
+        | "RichText/Media_Album"
+        | "Event/BingBot"
+        | "Event/Call"
+        | "RichText/Media_GenericFile"
+        | "RichText/Media_Video"
+        | "RichText/Media_AudioMsg"
+        | "Poll"
+        | "RichText/Media_Card"
+        | "RichText/ScheduledCallInvite"
+        | "RichText/Media_CallRecording"
+        | "RichText/Contacts"
+        | "RichText/Location";
       version: number;
       content: string;
       conversationid: string;

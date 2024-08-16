@@ -233,6 +233,7 @@ const openaiClient = new OpenAI();
     }
 
     const uploadSpinner = new Spinner().start("Uploading file...");
+    let fileUploadId;
     try {
       const fileUpload = await openaiClient.files.create({
         purpose: "fine-tune",
@@ -240,8 +241,64 @@ const openaiClient = new OpenAI();
       });
 
       uploadSpinner.succeed("Successfully uploaded file as " + fileUpload.id);
+      fileUploadId = fileUpload.id;
     } catch (e) {
       uploadSpinner.failed("File upload failed");
+      console.error(e);
+      return;
+    }
+
+    // offer to start training
+    const train = createPrompt("do you want to start training? (y/n): ");
+    if (train.error || train.value?.toLowerCase() != "y") {
+      console.log("\x1b[91m✘\x1b[0m Not starting training!");
+      return;
+    } else {
+      console.log("\x1b[92m✔\x1b[0m Starting training!");
+    }
+
+    let wandbProject: null | string = null;
+    // ask the user if they want to track this in a weights and biases project and if so than enter the name of it
+    const wandb = createPrompt("Do you want to track this in wandb? (y/n): ");
+    if (wandb.error || wandb.value?.toLowerCase() != "y") {
+      console.log("\x1b[91m✘\x1b[0m Not tracking in wandb!");
+      return;
+    } else {
+      console.log("\x1b[92m✔\x1b[0m Tracking in wandb!");
+
+      const wandbProjectPrompt = createPrompt(
+        "Enter the name of the wandb project: "
+      );
+      if (wandbProjectPrompt.error) {
+        console.error("Something went wrong:", wandbProjectPrompt.error);
+        return;
+      }
+
+      wandbProject = wandbProjectPrompt.value;
+    }
+
+    const trainingSpinner = new Spinner().start("Starting training...");
+    try {
+      const training = await openaiClient.fineTuning.jobs.create({
+        model: "gpt-4o-mini-2024-07-18",
+        training_file: fileUploadId,
+        integrations: wandbProject
+          ? [
+              {
+                type: "wandb",
+                wandb: {
+                  project: wandbProject,
+                },
+              },
+            ]
+          : [],
+      });
+
+      trainingSpinner.succeed(
+        "Successfully started training as " + training.id
+      );
+    } catch (e) {
+      trainingSpinner.failed("Training failed");
       console.error(e);
       return;
     }

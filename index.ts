@@ -129,7 +129,7 @@ import { Spinner } from "@topcli/spinner";
               role: message.from === messageData.userId ? "assistant" : "user",
               name:
                 message.from !== messageData.userId && message.displayName
-                  ? message.displayName
+                  ? message.displayName.replaceAll(" ", "")
                   : undefined,
               content: message.content,
             };

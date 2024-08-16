@@ -2,6 +2,10 @@ import { createPrompt, createSelection, type SelectionItem } from "bun-promptx";
 import type { SkypeType } from "./type";
 import { Spinner } from "@topcli/spinner";
 
+import OpenAI from "openai";
+
+const openaiClient = new OpenAI();
+
 (async function main() {
   try {
     console.log("Hi! Welcome to the mini me project!");
@@ -157,6 +161,47 @@ import { Spinner } from "@topcli/spinner";
         return JSON.stringify(conversation);
       })
       .join("\n");
+
+    const moderate = createPrompt(
+      "do you want to run a moderation check? (y/n): "
+    );
+
+    if (moderate.error || moderate.value?.toLowerCase() != "y") {
+      console.log(
+        "\x1b[91m✘\x1b[0m It is a good idea to run this check to make sure you model doesn't get removed!"
+      );
+
+      // write training data to file
+      const writingSpinner = new Spinner().start(
+        "Writing training data to file..."
+      );
+      await Bun.write("data/training.jsonl", trainingDataMapped);
+      writingSpinner.succeed(
+        "Successfully wrote training data to data/training.jsonl!"
+      );
+
+      return;
+    } else {
+      console.log("\x1b[92m✔\x1b[0m Running check now!");
+    }
+
+    // run the training data through the moderation api
+    const moderationSpinner = new Spinner().start(
+      "Running moderation check..."
+    );
+    const moderationResults = await openaiClient.moderations.create({
+      input: trainingData
+        .map((conversations) => {
+          conversations.messages
+            .map((message) => {
+              message.content;
+            })
+            .join("\n");
+        })
+        .join("\n---\n"),
+    });
+    moderationSpinner.succeed("Moderation check complete!");
+    console.log(moderationResults);
 
     // write training data to file
     const writingSpinner = new Spinner().start(

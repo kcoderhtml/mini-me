@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@topcli/spinner": "^2.1.2",
-    "bun-promptx": "^0.2.0"
+    "bun-promptx": "^0.2.0",
+    "openai": "^4.55.9"
   }
 }

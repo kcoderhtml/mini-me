@@ -331,6 +331,38 @@ const openaiClient = new OpenAI();
           console.error(e);
           return;
         }
+        break;
+      case 1:
+        const exportSpinner = new Spinner().start("Exporting to csv...");
+        // export the data to csv with an input column for all messages before the last assistant message
+        const csvData =
+          "input,output\n" +
+          trainingData
+            .map((conversation) => {
+              return (
+                "'" +
+                conversation.messages
+                  .slice(0, -1)
+                  .map((message) => {
+                    return (
+                      "<" +
+                      (message.name || "assistant") +
+                      ">: " +
+                      message.content
+                    );
+                  })
+                  .join(" ") +
+                "','" +
+                conversation.messages[conversation.messages.length - 1]
+                  .content +
+                "'"
+              );
+            })
+            .join("\n");
+
+        await Bun.write("data/training.csv", csvData);
+        exportSpinner.succeed("Successfully exported to data/training.csv!");
+        break;
     }
   } catch (e) {
     console.error(e);

@@ -337,17 +337,39 @@ const openaiClient = new OpenAI();
         });
 
         const csvData = trainingData.map((conversation) => {
+          // make sure that the conversation doesn't exceed 50,000 characters and if it does then truncate from front
+          let totalLength = conversation.messages
+            .slice(0, -1)
+            .map((message) => {
+              return (
+                "<" + (message.name || "assistant") + ">: " + message.content
+              );
+            })
+            .join(" ").length;
+
+          while (totalLength > 39900) {
+            totalLength -= conversation.messages[0].content.length;
+            conversation.messages.shift();
+          }
+
+          let input = conversation.messages
+            .slice(0, -1)
+            .map((message) => {
+              return (
+                "<" + (message.name || "assistant") + ">: " + message.content
+              );
+            })
+            .join(" ");
+          let output =
+            conversation.messages[conversation.messages.length - 1].content;
+
+          if (output.length > 4900) {
+            output = output.slice(output.length - 4900);
+          }
+
           return {
-            input: conversation.messages
-              .slice(0, -1)
-              .map((message) => {
-                return (
-                  "<" + (message.name || "assistant") + ">: " + message.content
-                );
-              })
-              .join(" "),
-            output:
-              conversation.messages[conversation.messages.length - 1].content,
+            input,
+            output,
           };
         });
 

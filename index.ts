@@ -121,20 +121,22 @@ import { Spinner } from "@topcli/spinner";
     );
 
     // format into openai conversations format for training
-    const trainingData = messageChunks.map((chunk) => {
-      return {
-        messages: chunk.map((message) => {
-          return {
-            role: message.from === messageData.userId ? "assistant" : "user",
-            name:
-              message.from !== messageData.userId && message.displayName
-                ? message.displayName
-                : undefined,
-            content: message.content,
-          };
-        }),
-      };
-    });
+    const trainingData = messageChunks
+      .map((chunk) => {
+        return {
+          messages: chunk.map((message) => {
+            return {
+              role: message.from === messageData.userId ? "assistant" : "user",
+              name:
+                message.from !== messageData.userId && message.displayName
+                  ? message.displayName
+                  : undefined,
+              content: message.content,
+            };
+          }),
+        };
+      })
+      .filter((conversation) => conversation.messages.length > 1);
 
     const trainingDataMapped = trainingData
       .map((conversation) => {

@@ -2,8 +2,10 @@ import { createPrompt, createSelection, type SelectionItem } from "bun-promptx";
 import type { SkypeType } from "./type";
 import { Spinner } from "@topcli/spinner";
 
-import OpenAI, { toFile } from "openai";
+import OpenAI from "openai";
 import fs from "fs";
+
+import { createObjectCsvWriter as createCsvWriter } from "csv-writer";
 
 const openaiClient = new OpenAI();
 
@@ -326,32 +328,30 @@ const openaiClient = new OpenAI();
       case 1:
         const exportSpinner = new Spinner().start("Exporting to csv...");
         // export the data to csv with an input column for all messages before the last assistant message
-        const csvData =
-          "input,output\n" +
-          trainingData
-            .map((conversation) => {
-              return (
-                "'" +
-                conversation.messages
-                  .slice(0, -1)
-                  .map((message) => {
-                    return (
-                      "<" +
-                      (message.name || "assistant") +
-                      ">: " +
-                      message.content
-                    );
-                  })
-                  .join(" ") +
-                "','" +
-                conversation.messages[conversation.messages.length - 1]
-                  .content +
-                "'"
-              );
-            })
-            .join("\n");
+        const csvWriter = createCsvWriter({
+          path: "data/training.csv",
+          header: [
+            { id: "input", title: "INPUT" },
+            { id: "output", title: "OUTPUT" },
+          ],
+        });
 
-        await Bun.write("data/training.csv", csvData);
+        const csvData = trainingData.map((conversation) => {
+          return {
+            input: conversation.messages
+              .slice(0, -1)
+              .map((message) => {
+                return (
+                  "<" + (message.name || "assistant") + ">: " + message.content
+                );
+              })
+              .join(" "),
+            output:
+              conversation.messages[conversation.messages.length - 1].content,
+          };
+        });
+
+        await csvWriter.writeRecords(csvData);
         exportSpinner.succeed("Successfully exported to data/training.csv!");
         break;
     }

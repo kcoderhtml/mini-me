@@ -52,6 +52,7 @@ import { Spinner } from "@topcli/spinner";
 
     const selectedConversation =
       messageData.conversations[result.selectedIndex];
+    selectedConversation.MessageList.reverse();
 
     console.log(
       "You selected",
@@ -97,7 +98,7 @@ import { Spinner } from "@topcli/spinner";
     for (const message of selectedConversation.MessageList) {
       const originalArrivalDate = new Date(message.originalarrivaltime);
       if (
-        lastMessageTime.getTime() - originalArrivalDate.getTime() >
+        originalArrivalDate.getTime() - lastMessageTime.getTime() >
         1000 * 60 * 60
       ) {
         messageChunks.push(currentChunk);

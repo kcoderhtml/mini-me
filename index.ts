@@ -233,17 +233,17 @@ const openaiClient = new OpenAI();
     }
 
     const uploadSpinner = new Spinner().start("Uploading file...");
-    await openaiClient.files.create({
-      purpose: "fine-tune",
-      file: fs.createReadStream("data/training.jsonl"),
-    });
+    try {
+      const fileUpload = await openaiClient.files.create({
+        purpose: "fine-tune",
+        file: fs.createReadStream("data/training.jsonl"),
+      });
 
-    if (upload.error) {
-      uploadSpinner.failed("Failed to upload file!");
-      console.error(upload.error);
+      uploadSpinner.succeed("Successfully uploaded file as " + fileUpload.id);
+    } catch (e) {
+      uploadSpinner.failed("File upload failed");
+      console.error(e);
       return;
-    } else {
-      uploadSpinner.succeed("Successfully uploaded file! " + upload.value);
     }
   } catch (e) {
     console.error(e);

@@ -127,6 +127,27 @@ const openaiClient = new OpenAI();
         " messages per chunk"
     );
 
+    // ask how many conversations the user wants 0 meaning all and filtering from the back
+    const numConversations = createPrompt(
+      "How many conversations do you want to use? (0 for all): "
+    );
+
+    let numConversationsValue: undefined | number = undefined;
+
+    if (numConversations.error || !numConversations.value) {
+      console.error("Something went wrong:", numConversations.error);
+      return;
+    } else if (numConversations.value === "0") {
+      console.log("\x1b[92m✔\x1b[0m Using all conversations!");
+    } else {
+      console.log(
+        "\x1b[92m✔\x1b[0m Using the last",
+        numConversations.value,
+        "conversations!"
+      );
+      numConversationsValue = parseInt(numConversations.value);
+    }
+
     // format into openai conversations format for training
     const trainingData = messageChunks
       .map((chunk) => {
@@ -157,7 +178,8 @@ const openaiClient = new OpenAI();
           conversation.messages.length > 1 &&
           conversation.messages.some((message) => message.role === "user") &&
           conversation.messages.some((message) => message.role === "assistant")
-      );
+      )
+      .slice(numConversationsValue ? -numConversationsValue : undefined);
 
     const trainingDataMapped = trainingData
       .map((conversation) => {

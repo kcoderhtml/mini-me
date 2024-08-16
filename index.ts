@@ -123,18 +123,26 @@ import { Spinner } from "@topcli/spinner";
     // format into openai conversations format for training
     const trainingData = messageChunks
       .map((chunk) => {
-        return {
-          messages: chunk.map((message) => {
-            return {
-              role: message.from === messageData.userId ? "assistant" : "user",
-              name:
-                message.from !== messageData.userId && message.displayName
-                  ? message.displayName.replaceAll(" ", "")
-                  : undefined,
-              content: message.content,
-            };
-          }),
-        };
+        let messages = chunk.map((message) => {
+          return {
+            role: message.from === messageData.userId ? "assistant" : "user",
+            name:
+              message.from !== messageData.userId && message.displayName
+                ? message.displayName.replaceAll(" ", "")
+                : undefined,
+            content: message.content,
+          };
+        });
+
+        // Keep removing the last message until the last one is from the assistant
+        while (
+          messages.length > 0 &&
+          messages[messages.length - 1].role !== "assistant"
+        ) {
+          messages.pop();
+        }
+
+        return { messages };
       })
       // make sure there is more than one message and a message of both user and assistant role
       .filter(

@@ -200,8 +200,18 @@ const openaiClient = new OpenAI();
         })
         .join("\n---\n"),
     });
-    moderationSpinner.succeed("Moderation check complete!");
-    console.log(moderationResults);
+    if (moderationResults.results.some((result) => result.flagged === false)) {
+      moderationSpinner.succeed("Moderation check complete!");
+    } else {
+      moderationSpinner.failed("Moderation check failed!");
+      console.log(
+        "The following conversations were flagged:",
+        moderationResults.results
+          .filter((result) => result.flagged)
+          .map((result) => result.category_scores)
+      );
+      return;
+    }
 
     // write training data to file
     const writingSpinner = new Spinner().start(

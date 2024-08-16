@@ -5,7 +5,7 @@ import { Spinner } from "@topcli/spinner";
 import OpenAI from "openai";
 import fs from "fs";
 
-import { createObjectCsvWriter as createCsvWriter } from "csv-writer";
+import { parseCSV } from "./utils";
 
 const openaiClient = new OpenAI();
 
@@ -356,14 +356,6 @@ const openaiClient = new OpenAI();
       case 1:
         const exportSpinner = new Spinner().start("Exporting to csv...");
         // export the data to csv with an input column for all messages before the last assistant message
-        const csvWriter = createCsvWriter({
-          path: "data/training.csv",
-          header: [
-            { id: "input", title: "INPUT" },
-            { id: "output", title: "OUTPUT" },
-          ],
-        });
-
         const csvData = trainingData.map((conversation) => {
           // make sure that the conversation doesn't exceed 50,000 characters and if it does then truncate from front
           let totalLength = conversation.messages
@@ -395,13 +387,11 @@ const openaiClient = new OpenAI();
             output = output.slice(output.length - 4900);
           }
 
-          return {
-            input,
-            output,
-          };
+          return [input, output];
         });
 
-        await csvWriter.writeRecords(csvData);
+        const parsedCSV = parseCSV(csvData);
+        await Bun.write("data/training.csv", parsedCSV);
         exportSpinner.succeed("Successfully exported to data/training.csv!");
         break;
     }

@@ -118,7 +118,7 @@ import { Spinner } from "@topcli/spinner";
           messageChunks.reduce((total, chunk) => total + chunk.length, 0) /
             messageChunks.length
         ) +
-        " messagess per chunk"
+        " messages per chunk"
     );
   } catch (e) {
     console.error(e);

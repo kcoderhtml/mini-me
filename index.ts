@@ -2,7 +2,8 @@ import { createPrompt, createSelection, type SelectionItem } from "bun-promptx";
 import type { SkypeType } from "./type";
 import { Spinner } from "@topcli/spinner";
 
-import OpenAI from "openai";
+import OpenAI, { toFile } from "openai";
+import fs from "fs";
 
 const openaiClient = new OpenAI();
 
@@ -221,6 +222,29 @@ const openaiClient = new OpenAI();
     writingSpinner.succeed(
       "Successfully wrote training data to data/training.jsonl!"
     );
+
+    // offer to upload the file
+    const upload = createPrompt("do you want to upload the file? (y/n): ");
+    if (upload.error || upload.value?.toLowerCase() != "y") {
+      console.log("\x1b[91m✘\x1b[0m Not uploading the file!");
+      return;
+    } else {
+      console.log("\x1b[92m✔\x1b[0m Uploading the file!");
+    }
+
+    const uploadSpinner = new Spinner().start("Uploading file...");
+    await openaiClient.files.create({
+      purpose: "fine-tune",
+      file: fs.createReadStream("data/training.jsonl"),
+    });
+
+    if (upload.error) {
+      uploadSpinner.failed("Failed to upload file!");
+      console.error(upload.error);
+      return;
+    } else {
+      uploadSpinner.succeed("Successfully uploaded file! " + upload.value);
+    }
   } catch (e) {
     console.error(e);
   }

@@ -97,7 +97,7 @@ import { Spinner } from "@topcli/spinner";
     for (const message of selectedConversation.MessageList) {
       const originalArrivalDate = new Date(message.originalarrivaltime);
       if (
-        originalArrivalDate.getTime() - lastMessageTime.getTime() >
+        lastMessageTime.getTime() - originalArrivalDate.getTime() >
         1000 * 60 * 60
       ) {
         messageChunks.push(currentChunk);
@@ -106,6 +106,7 @@ import { Spinner } from "@topcli/spinner";
       currentChunk.push(message);
       lastMessageTime = originalArrivalDate;
     }
+    if (currentChunk.length > 0) messageChunks.push(currentChunk);
 
     // list how many chunks there are
     chunkingSpinner.succeed(

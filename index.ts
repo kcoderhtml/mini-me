@@ -171,47 +171,38 @@ const openaiClient = new OpenAI();
       console.log(
         "\x1b[91m✘\x1b[0m It is a good idea to run this check to make sure you model doesn't get removed!"
       );
-
-      // write training data to file
-      const writingSpinner = new Spinner().start(
-        "Writing training data to file..."
-      );
-      await Bun.write("data/training.jsonl", trainingDataMapped);
-      writingSpinner.succeed(
-        "Successfully wrote training data to data/training.jsonl!"
-      );
-
-      return;
     } else {
       console.log("\x1b[92m✔\x1b[0m Running check now!");
-    }
 
-    // run the training data through the moderation api
-    const moderationSpinner = new Spinner().start(
-      "Running moderation check..."
-    );
-    const moderationResults = await openaiClient.moderations.create({
-      input: trainingData
-        .map((conversations) => {
-          conversations.messages
-            .map((message) => {
-              message.content;
-            })
-            .join("\n");
-        })
-        .join("\n---\n"),
-    });
-    if (moderationResults.results.some((result) => result.flagged === false)) {
-      moderationSpinner.succeed("Moderation check complete!");
-    } else {
-      moderationSpinner.failed("Moderation check failed!");
-      console.log(
-        "The following conversations were flagged:",
-        moderationResults.results
-          .filter((result) => result.flagged)
-          .map((result) => result.category_scores)
+      // run the training data through the moderation api
+      const moderationSpinner = new Spinner().start(
+        "Running moderation check..."
       );
-      return;
+      const moderationResults = await openaiClient.moderations.create({
+        input: trainingData
+          .map((conversations) => {
+            conversations.messages
+              .map((message) => {
+                message.content;
+              })
+              .join("\n");
+          })
+          .join("\n---\n"),
+      });
+      if (
+        moderationResults.results.some((result) => result.flagged === false)
+      ) {
+        moderationSpinner.succeed("Moderation check complete!");
+      } else {
+        moderationSpinner.failed("Moderation check failed!");
+        console.log(
+          "The following conversations were flagged:",
+          moderationResults.results
+            .filter((result) => result.flagged)
+            .map((result) => result.category_scores)
+        );
+        return;
+      }
     }
 
     const trainingType = createSelection(

@@ -11,7 +11,6 @@ import { Spinner } from "@topcli/spinner";
 
     console.log("------------------\n");
     const spinner = new Spinner().start("loading json data!");
-    await Bun.sleep(1000);
 
     const messageData: SkypeType = await Bun.file("data/messages.json").json();
 

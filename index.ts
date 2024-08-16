@@ -84,7 +84,10 @@ const openaiClient = new OpenAI();
 
     const confirm = createPrompt("is this what you want to use? (y/n): ");
 
-    if (confirm.error || confirm.value?.toLowerCase() != "y") {
+    if (
+      confirm.error ||
+      (confirm.value?.toLowerCase() != "y" && confirm.value)
+    ) {
       console.log("\x1b[91m✘\x1b[0m Not converting to training data!");
       return;
     } else {
@@ -134,10 +137,10 @@ const openaiClient = new OpenAI();
 
     let numConversationsValue: undefined | number = undefined;
 
-    if (numConversations.error || !numConversations.value) {
+    if (numConversations.error) {
       console.error("Something went wrong:", numConversations.error);
       return;
-    } else if (numConversations.value === "0") {
+    } else if (numConversations.value === "0" || !numConversations.value) {
       console.log("\x1b[92m✔\x1b[0m Using all conversations!");
     } else {
       console.log(
@@ -191,7 +194,10 @@ const openaiClient = new OpenAI();
       "do you want to run a moderation check? (y/n): "
     );
 
-    if (moderate.error || moderate.value?.toLowerCase() != "y") {
+    if (
+      moderate.error ||
+      (moderate.value?.toLowerCase() != "y" && moderate.value)
+    ) {
       console.log(
         "\x1b[91m✘\x1b[0m It is a good idea to run this check to make sure you model doesn't get removed!"
       );

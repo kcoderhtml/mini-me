@@ -119,6 +119,37 @@ import { Spinner } from "@topcli/spinner";
         ) +
         " messages per chunk"
     );
+
+    // format into openai conversations format for training
+    const trainingData = messageChunks.map((chunk) => {
+      return {
+        messages: chunk.map((message) => {
+          return {
+            role: message.from === messageData.userId ? "assistant" : "user",
+            name:
+              message.from !== messageData.userId && message.displayName
+                ? message.displayName
+                : undefined,
+            content: message.content,
+          };
+        }),
+      };
+    });
+
+    const trainingDataMapped = trainingData
+      .map((conversation) => {
+        return JSON.stringify(conversation);
+      })
+      .join("\n");
+
+    // write training data to file
+    const writingSpinner = new Spinner().start(
+      "Writing training data to file..."
+    );
+    await Bun.write("data/training.jsonl", trainingDataMapped);
+    writingSpinner.succeed(
+      "Successfully wrote training data to data/training.jsonl!"
+    );
   } catch (e) {
     console.error(e);
   }

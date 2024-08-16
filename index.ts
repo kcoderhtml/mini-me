@@ -136,7 +136,13 @@ import { Spinner } from "@topcli/spinner";
           }),
         };
       })
-      .filter((conversation) => conversation.messages.length > 1);
+      // make sure there is more than one message and a message of both user and assistant role
+      .filter(
+        (conversation) =>
+          conversation.messages.length > 1 &&
+          conversation.messages.some((message) => message.role === "user") &&
+          conversation.messages.some((message) => message.role === "assistant")
+      );
 
     const trainingDataMapped = trainingData
       .map((conversation) => {

@@ -106,15 +106,17 @@ const openaiClient = new OpenAI();
     );
     for (const message of selectedConversation.MessageList) {
       const originalArrivalDate = new Date(message.originalarrivaltime);
-      if (
-        originalArrivalDate.getTime() - lastMessageTime.getTime() >
-        1000 * 60 * 60
-      ) {
-        messageChunks.push(currentChunk);
-        currentChunk = [];
+      if (message.messagetype === "RichText") {
+        if (
+          originalArrivalDate.getTime() - lastMessageTime.getTime() >
+          1000 * 60 * 60
+        ) {
+          messageChunks.push(currentChunk);
+          currentChunk = [];
+        }
+        currentChunk.push(message);
+        lastMessageTime = originalArrivalDate;
       }
-      currentChunk.push(message);
-      lastMessageTime = originalArrivalDate;
     }
     if (currentChunk.length > 0) messageChunks.push(currentChunk);
 
